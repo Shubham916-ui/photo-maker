@@ -8,6 +8,7 @@
   <meta name="description"
     content="Passport size photo ko A4 paper pe arrange karo aur print karo. Bilkul free, browser mein hi." />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
   <style>
     *,
     *::before,
@@ -342,6 +343,195 @@
       color: #ff6b6b;
     }
 
+    /* ── AI BACKGROUND REMOVER STYLES ── */
+    .bg-card {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .bg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .free-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-bg-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #6c63ff 0%, #9333ea 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 2px 10px rgba(108, 99, 255, 0.35);
+    }
+
+    .btn-bg-action:hover:not(:disabled) {
+      opacity: 0.92;
+      box-shadow: 0 4px 14px rgba(108, 99, 255, 0.5);
+    }
+
+    .btn-bg-action:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-bg-action:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .bg-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: bg-spin 0.7s linear infinite;
+    }
+
+    @keyframes bg-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .bg-status {
+      font-size: 0.75rem;
+      padding: 8px 10px;
+      border-radius: 6px;
+      line-height: 1.35;
+    }
+
+    .bg-status.info {
+      background: rgba(108, 99, 255, 0.12);
+      color: var(--accent2);
+      border: 1px solid rgba(108, 99, 255, 0.25);
+    }
+
+    .bg-status.success {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .bg-status.error {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .bg-palette {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .swatch-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      padding: 0;
+      outline: none;
+    }
+
+    .swatch-btn:hover {
+      transform: scale(1.15);
+      border-color: var(--accent2);
+    }
+
+    .swatch-btn.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px var(--accent);
+      transform: scale(1.15);
+    }
+
+    .transparent-pattern {
+      background: repeating-conic-gradient(#808080 0% 25%, #fff 0% 50%) 50% / 10px 10px !important;
+    }
+
+    .custom-color-wrap {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px dashed var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      background: var(--surface);
+    }
+
+    .custom-color-wrap:hover {
+      transform: scale(1.15);
+      border-color: var(--accent);
+    }
+
+    .custom-color-wrap input[type=color] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      border: none;
+      padding: 0;
+    }
+
+    .custom-color-icon {
+      font-size: 0.75rem;
+      pointer-events: none;
+    }
+
+    .revert-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.15s;
+      text-decoration: underline;
+      padding: 2px 4px;
+    }
+
+    .revert-btn:hover {
+      color: #ff6b6b;
+    }
+
+    #crop-container.is-transparent {
+      background: repeating-conic-gradient(#2c2c40 0% 25%, #181824 0% 50%) 50% / 14px 14px !important;
+    }
+
     label {
       display: block;
       font-size: 0.82rem;
@@ -439,19 +629,22 @@
     .a4-wrapper {
       overflow: hidden;
       display: flex;
-      justify-content: flex-start;
+      justify-content: center;
+      align-items: flex-start;
       width: 100%;
+      padding: 4px 0;
     }
 
     #a4-canvas-wrap {
       position: relative;
-      transform-origin: top left;
+      transform-origin: top center;
       flex-shrink: 0;
     }
 
     #a4-sheet {
       width: 794px;
-      min-height: 1123px;
+      height: 1123px;
+      max-height: 1123px;
       background: #fff;
       box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
       border-radius: 4px;
@@ -565,42 +758,115 @@
     }
 
     @media print {
-      body * {
-        visibility: hidden !important;
+      @page {
+        size: A4 portrait;
+        margin: 0mm;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box !important;
+      }
+
+      html,
+      body {
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        overflow: hidden !important;
+      }
+
+      /* Hide everything non-printable so it takes 0px in layout flow */
+      header,
+      .panel,
+      .preview-panel > h2,
+      .scale-note,
+      .empty-state {
+        display: none !important;
+      }
+
+      .container {
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+      }
+
+      .preview-panel {
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        background: #fff !important;
+        border-radius: 0 !important;
+      }
+
+      .a4-wrapper {
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
       }
 
       #a4-canvas-wrap {
-        transform: none !important;
-        position: fixed !important;
+        position: absolute !important;
         top: 0 !important;
         left: 0 !important;
-        height: auto !important;
-      }
-
-      #a4-sheet,
-      #a4-sheet * {
-        visibility: visible !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
+        transform: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
       }
 
       #a4-sheet {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 210mm !important;
+        height: 297mm !important;
+        max-width: 210mm !important;
+        max-height: 297mm !important;
         min-height: 297mm !important;
         box-shadow: none !important;
         border-radius: 0 !important;
-        transform: none !important;
+        overflow: hidden !important;
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+      #photo-grid {
+        position: absolute !important;
       }
 
       #photo-grid img {
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-      }
-
-      @page {
-        margin: 0;
-        size: A4 portrait;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+        page-break-inside: avoid !important;
       }
     }
   </style>
@@ -653,9 +919,70 @@
               </div>
               <input type="range" class="adjust-slider" id="pan-y-slider" min="-100" max="100" value="0" />
             </div>
+            <!-- Photo Edit: Brightness, Saturation, Contrast -->
+            <div class="control-group">
+              <div class="adjust-header">
+                <span>☀️ Brightness (चमक)</span>
+                <span class="val" id="brightness-val">100%</span>
+              </div>
+              <input type="range" class="adjust-slider" id="brightness-slider" min="50" max="150" value="100" />
+            </div>
+            <div class="control-group">
+              <div class="adjust-header">
+                <span>🎨 Saturation (रंग)</span>
+                <span class="val" id="saturation-val">100%</span>
+              </div>
+              <input type="range" class="adjust-slider" id="saturation-slider" min="0" max="200" value="100" />
+            </div>
+            <div class="control-group">
+              <div class="adjust-header">
+                <span>🌓 Contrast (कंट्रास्ट)</span>
+                <span class="val" id="contrast-val">100%</span>
+              </div>
+              <input type="range" class="adjust-slider" id="contrast-slider" min="50" max="150" value="100" />
+            </div>
             <div class="adjust-btn-row">
               <button id="rotate-btn" type="button">🔄 90° Ghumao</button>
               <button id="reset-adjust-btn" type="button">↺ Reset</button>
+            </div>
+          </div>
+          <!-- AI Background Remover Card -->
+          <div class="bg-card" id="bg-card">
+            <div class="bg-header">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:1rem;">✨</span>
+                <span style="font-size:0.8rem; font-weight:600; color:var(--accent2);">AI Background Remover</span>
+              </div>
+              <span class="free-pill">100% FREE</span>
+            </div>
+
+            <button type="button" class="btn-bg-action" id="bg-remove-btn">
+              <span class="bg-spinner" id="bg-spinner" style="display:none;"></span>
+              <span id="bg-btn-icon">🪄</span>
+              <span id="bg-btn-text">Background Remove Karo</span>
+            </button>
+            
+            <div id="bg-status" class="bg-status" style="display:none;"></div>
+
+            <div id="bg-options" style="display:none;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; margin-bottom:6px;">
+                <label style="font-size:0.75rem; color:var(--muted); margin:0;">Passport Background Color:</label>
+                <span id="bg-color-name" style="font-size:0.72rem; color:var(--accent2); font-weight:600;">Pure White</span>
+              </div>
+              <div class="bg-palette">
+                <button type="button" class="swatch-btn active" data-color="#ffffff" data-name="Pure White" title="White (Passport)" style="background:#ffffff;"></button>
+                <button type="button" class="swatch-btn" data-color="#dbeafe" data-name="Sky Blue" title="Light Sky Blue" style="background:#dbeafe;"></button>
+                <button type="button" class="swatch-btn" data-color="#2563eb" data-name="Studio Blue" title="Studio Blue" style="background:#2563eb;"></button>
+                <button type="button" class="swatch-btn" data-color="#e5e7eb" data-name="Light Grey" title="Light Grey" style="background:#e5e7eb;"></button>
+                <button type="button" class="swatch-btn transparent-pattern" data-color="transparent" data-name="Transparent" title="Transparent (PNG)"></button>
+                <div class="custom-color-wrap" title="Custom Color Chuno">
+                  <input type="color" id="bg-custom-color" value="#ffffff" />
+                  <span class="custom-color-icon">🎨</span>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                <button type="button" id="bg-revert-btn" class="revert-btn">↩️ Original Photo Wapas Lao</button>
+              </div>
             </div>
           </div>
         </div>
@@ -730,11 +1057,21 @@
   </div>
   <script>
     var imgSrc = null;
+    var rawUploadedImageSrc = null;
+    var rawUploadedImageObj = new Image();
     var originalImageObj = new Image();
+    var selfieSegmentationInstance = null;
+    var rawPersonCanvas = null;
+    var activeBgColor = '#ffffff';
+    var isSegmentationRunning = false;
+
     var cropZoom = 100;
     var cropPanX = 0;
     var cropPanY = 0;
     var cropRotation = 0;
+    var cropBrightness = 100;
+    var cropSaturation = 100;
+    var cropContrast = 100;
     var adjustedImgSrc = null;
 
     var MM_TO_PX = 3.7795;
@@ -750,6 +1087,12 @@
     var panXVal = document.getElementById('pan-x-val');
     var panYSlider = document.getElementById('pan-y-slider');
     var panYVal = document.getElementById('pan-y-val');
+    var brightnessSlider = document.getElementById('brightness-slider');
+    var brightnessVal = document.getElementById('brightness-val');
+    var saturationSlider = document.getElementById('saturation-slider');
+    var saturationVal = document.getElementById('saturation-val');
+    var contrastSlider = document.getElementById('contrast-slider');
+    var contrastVal = document.getElementById('contrast-val');
     var rotateBtn = document.getElementById('rotate-btn');
     var resetAdjustBtn = document.getElementById('reset-adjust-btn');
     var changeBtn = document.getElementById('change-btn');
@@ -775,14 +1118,19 @@
 
     function scaleA4() {
       var wrapper = document.getElementById('a4-wrapper');
+      if (!wrapper) return;
       var wrapperW = wrapper.clientWidth;
-      var scale = Math.min(1, wrapperW / A4_W_PX);
+      var availableW = Math.max(80, wrapperW - 12);
+      var scale = Math.min(1, availableW / A4_W_PX);
       a4Wrap.style.transform = 'scale(' + scale + ')';
-      var scaledH = parseFloat(a4Sheet.style.minHeight || A4_H_PX) * scale;
-      a4Wrap.style.height = scaledH + 'px';
-      scaleNote.textContent = scale < 1 ? 'Preview ' + Math.round(scale * 100) + '% zoom pe hai — print pe actual A4 size hogi' : '';
+      var scaledH = A4_H_PX * scale;
+      a4Wrap.style.height = Math.round(scaledH) + 'px';
+      a4Wrap.style.width = A4_W_PX + 'px';
+      scaleNote.textContent = scale < 1 ? 'Preview ' + Math.round(scale * 100) + '% zoom pe hai (A4 Sheet)' : 'A4 Size (100%)';
     }
     window.addEventListener('resize', scaleA4);
+    window.addEventListener('orientationchange', function () { setTimeout(scaleA4, 150); });
+    document.addEventListener('DOMContentLoaded', scaleA4);
     scaleA4();
 
     function getSize() {
@@ -822,6 +1170,16 @@
       ctx.save();
       ctx.translate(canvasW / 2 + panXPx, canvasH / 2 + panYPx);
       ctx.rotate(cropRotation * Math.PI / 180);
+
+      // Photo Edit: Brightness, Saturation, Contrast filters
+      var filters = [];
+      if (cropBrightness !== 100) filters.push('brightness(' + (cropBrightness / 100) + ')');
+      if (cropSaturation !== 100) filters.push('saturate(' + (cropSaturation / 100) + ')');
+      if (cropContrast !== 100) filters.push('contrast(' + (cropContrast / 100) + ')');
+      if (filters.length > 0) {
+        ctx.filter = filters.join(' ');
+      }
+
       ctx.drawImage(
         originalImageObj,
         -originalImageObj.naturalWidth * finalScale / 2,
@@ -838,7 +1196,7 @@
       var pCtx = cropCanvasPreview.getContext('2d');
       pCtx.drawImage(exportCanvas, 0, 0, cropCanvasPreview.width, cropCanvasPreview.height);
 
-      adjustedImgSrc = exportCanvas.toDataURL('image/jpeg', 0.95);
+      adjustedImgSrc = exportCanvas.toDataURL(activeBgColor === 'transparent' ? 'image/png' : 'image/jpeg', 0.95);
 
       // Live update if photos already arranged
       if (photoGrid.style.display !== 'none') {
@@ -934,6 +1292,24 @@
       updateCroppedImage();
     });
 
+    brightnessSlider.addEventListener('input', function () {
+      cropBrightness = +brightnessSlider.value;
+      brightnessVal.textContent = cropBrightness + '%';
+      updateCroppedImage();
+    });
+
+    saturationSlider.addEventListener('input', function () {
+      cropSaturation = +saturationSlider.value;
+      saturationVal.textContent = cropSaturation + '%';
+      updateCroppedImage();
+    });
+
+    contrastSlider.addEventListener('input', function () {
+      cropContrast = +contrastSlider.value;
+      contrastVal.textContent = cropContrast + '%';
+      updateCroppedImage();
+    });
+
     rotateBtn.addEventListener('click', function () {
       cropRotation = (cropRotation + 90) % 360;
       updateCroppedImage();
@@ -944,12 +1320,21 @@
       cropPanX = 0;
       cropPanY = 0;
       cropRotation = 0;
+      cropBrightness = 100;
+      cropSaturation = 100;
+      cropContrast = 100;
       zoomSlider.value = 100;
       zoomVal.textContent = '100%';
       panXSlider.value = 0;
       panXVal.textContent = '0';
       panYSlider.value = 0;
       panYVal.textContent = '0';
+      brightnessSlider.value = 100;
+      brightnessVal.textContent = '100%';
+      saturationSlider.value = 100;
+      saturationVal.textContent = '100%';
+      contrastSlider.value = 100;
+      contrastVal.textContent = '100%';
       updateCroppedImage();
     });
 
@@ -958,24 +1343,50 @@
       var reader = new FileReader();
       reader.onload = function (e) {
         imgSrc = e.target.result;
-        originalImageObj = new Image();
-        originalImageObj.onload = function () {
+        rawUploadedImageSrc = e.target.result;
+        rawUploadedImageObj = new Image();
+        rawUploadedImageObj.onload = function () {
           cropZoom = 100;
           cropPanX = 0;
           cropPanY = 0;
           cropRotation = 0;
+          cropBrightness = 100;
+          cropSaturation = 100;
+          cropContrast = 100;
           zoomSlider.value = 100;
           zoomVal.textContent = '100%';
           panXSlider.value = 0;
           panXVal.textContent = '0';
           panYSlider.value = 0;
           panYVal.textContent = '0';
+          brightnessSlider.value = 100;
+          brightnessVal.textContent = '100%';
+          saturationSlider.value = 100;
+          saturationVal.textContent = '100%';
+          contrastSlider.value = 100;
+          contrastVal.textContent = '100%';
           dropZone.style.display = 'none';
           thumbWrap.style.display = 'flex';
           arrangeBtn.disabled = false;
-          updateCroppedImage();
+
+          // Reset BG remover state
+          rawPersonCanvas = null;
+          activeBgColor = '#ffffff';
+          bgOptions.style.display = 'none';
+          bgStatus.style.display = 'none';
+          bgStatus.className = 'bg-status';
+          bgBtnText.textContent = 'Background Remove Karo';
+          bgBtnIcon.textContent = '🪄';
+          bgRemoveBtn.disabled = false;
+          cropContainer.classList.remove('is-transparent');
+
+          originalImageObj = new Image();
+          originalImageObj.onload = function () {
+            updateCroppedImage();
+          };
+          originalImageObj.src = imgSrc;
         };
-        originalImageObj.src = imgSrc;
+        rawUploadedImageObj.src = rawUploadedImageSrc;
       };
       reader.readAsDataURL(file);
     }
@@ -987,8 +1398,11 @@
 
     changeBtn.addEventListener('click', function () {
       imgSrc = null;
+      rawUploadedImageSrc = null;
       adjustedImgSrc = null;
+      rawPersonCanvas = null;
       originalImageObj.src = '';
+      rawUploadedImageObj.src = '';
       fileInput.value = '';
       thumbWrap.style.display = 'none';
       dropZone.style.display = '';
@@ -996,8 +1410,187 @@
       printBtn.disabled = true;
       emptyState.style.display = '';
       photoGrid.style.display = 'none';
+      bgOptions.style.display = 'none';
+      bgStatus.style.display = 'none';
+      cropContainer.classList.remove('is-transparent');
       a4Sheet.style.minHeight = A4_H_PX + 'px';
       scaleA4();
+    });
+
+    // ── AI BACKGROUND REMOVER LOGIC ──
+    var bgRemoveBtn = document.getElementById('bg-remove-btn');
+    var bgSpinner = document.getElementById('bg-spinner');
+    var bgBtnIcon = document.getElementById('bg-btn-icon');
+    var bgBtnText = document.getElementById('bg-btn-text');
+    var bgStatus = document.getElementById('bg-status');
+    var bgOptions = document.getElementById('bg-options');
+    var bgColorName = document.getElementById('bg-color-name');
+    var bgRevertBtn = document.getElementById('bg-revert-btn');
+    var bgCustomColor = document.getElementById('bg-custom-color');
+
+    function setBgLoading(isLoading, msg) {
+      isSegmentationRunning = isLoading;
+      bgRemoveBtn.disabled = isLoading;
+      bgSpinner.style.display = isLoading ? 'inline-block' : 'none';
+      bgBtnIcon.style.display = isLoading ? 'none' : 'inline-block';
+      if (isLoading) {
+        bgBtnText.textContent = 'AI Processing...';
+        bgStatus.className = 'bg-status info';
+        bgStatus.textContent = msg || 'AI model photo analyze kar raha hai...';
+        bgStatus.style.display = 'block';
+      }
+    }
+
+    function initSelfieSegmentation() {
+      if (selfieSegmentationInstance) return selfieSegmentationInstance;
+      if (typeof SelfieSegmentation === 'undefined') {
+        throw new Error('SelfieSegmentation library load nahi ho payi. Kripya apna internet connection check karein.');
+      }
+      selfieSegmentationInstance = new SelfieSegmentation({
+        locateFile: function (file) {
+          return 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/' + file;
+        }
+      });
+      selfieSegmentationInstance.setOptions({
+        modelSelection: 1
+      });
+      return selfieSegmentationInstance;
+    }
+
+    bgRemoveBtn.addEventListener('click', function () {
+      if (!rawUploadedImageObj.naturalWidth || isSegmentationRunning) return;
+
+      try {
+        var seg = initSelfieSegmentation();
+        setBgLoading(true, 'AI photo analyze kar raha hai... (pehle run mein 2-3 sec lag sakte hain)');
+
+        seg.onResults(function (results) {
+          try {
+            var w = rawUploadedImageObj.naturalWidth;
+            var h = rawUploadedImageObj.naturalHeight;
+
+            // Feathered mask
+            var maskCanvas = document.createElement('canvas');
+            maskCanvas.width = w;
+            maskCanvas.height = h;
+            var mCtx = maskCanvas.getContext('2d');
+            mCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+
+            // Isolate person on transparent canvas
+            rawPersonCanvas = document.createElement('canvas');
+            rawPersonCanvas.width = w;
+            rawPersonCanvas.height = h;
+            var pCtx = rawPersonCanvas.getContext('2d');
+            pCtx.drawImage(rawUploadedImageObj, 0, 0, w, h);
+            pCtx.globalCompositeOperation = 'destination-in';
+            pCtx.drawImage(maskCanvas, 0, 0, w, h);
+
+            // Apply default White background
+            activeBgColor = '#ffffff';
+            applyActiveBgColor();
+
+            // UI update
+            setBgLoading(false);
+            bgBtnText.textContent = 'Dobara AI Run Karo';
+            bgBtnIcon.textContent = '✨';
+            bgStatus.className = 'bg-status success';
+            bgStatus.textContent = '✅ Background hat gaya! Ab niche se passport color chuno:';
+            bgStatus.style.display = 'block';
+            bgOptions.style.display = 'block';
+
+            document.querySelectorAll('.swatch-btn').forEach(function (btn) {
+              btn.classList.toggle('active', btn.dataset.color === '#ffffff');
+            });
+            bgColorName.textContent = 'Pure White';
+          } catch (err) {
+            console.error(err);
+            setBgLoading(false);
+            bgStatus.className = 'bg-status error';
+            bgStatus.textContent = 'Error: ' + err.message;
+            bgStatus.style.display = 'block';
+          }
+        });
+
+        seg.send({ image: rawUploadedImageObj }).catch(function (err) {
+          console.error(err);
+          setBgLoading(false);
+          bgStatus.className = 'bg-status error';
+          bgStatus.textContent = 'AI processing fail hui: ' + err.message;
+          bgStatus.style.display = 'block';
+        });
+      } catch (err) {
+        console.error(err);
+        setBgLoading(false);
+        bgStatus.className = 'bg-status error';
+        bgStatus.textContent = err.message;
+        bgStatus.style.display = 'block';
+      }
+    });
+
+    function applyActiveBgColor() {
+      if (!rawPersonCanvas) return;
+      var w = rawUploadedImageObj.naturalWidth;
+      var h = rawUploadedImageObj.naturalHeight;
+
+      var compCanvas = document.createElement('canvas');
+      compCanvas.width = w;
+      compCanvas.height = h;
+      var cCtx = compCanvas.getContext('2d');
+
+      if (activeBgColor !== 'transparent') {
+        cCtx.fillStyle = activeBgColor;
+        cCtx.fillRect(0, 0, w, h);
+        cropContainer.classList.remove('is-transparent');
+      } else {
+        cropContainer.classList.add('is-transparent');
+      }
+
+      cCtx.drawImage(rawPersonCanvas, 0, 0, w, h);
+
+      var newUrl = compCanvas.toDataURL(activeBgColor === 'transparent' ? 'image/png' : 'image/jpeg', 0.95);
+      originalImageObj = new Image();
+      originalImageObj.onload = function () {
+        updateCroppedImage();
+      };
+      originalImageObj.src = newUrl;
+    }
+
+    // Color swatches click
+    document.querySelectorAll('.swatch-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.swatch-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeBgColor = btn.dataset.color;
+        bgColorName.textContent = btn.dataset.name || activeBgColor;
+        applyActiveBgColor();
+      });
+    });
+
+    // Custom color input
+    bgCustomColor.addEventListener('input', function () {
+      document.querySelectorAll('.swatch-btn').forEach(function (b) { b.classList.remove('active'); });
+      activeBgColor = bgCustomColor.value;
+      bgColorName.textContent = 'Custom (' + activeBgColor + ')';
+      applyActiveBgColor();
+    });
+
+    // Revert to original photo
+    bgRevertBtn.addEventListener('click', function () {
+      if (!rawUploadedImageSrc) return;
+      rawPersonCanvas = null;
+      bgOptions.style.display = 'none';
+      bgStatus.className = 'bg-status info';
+      bgStatus.textContent = '↩️ Original photo wapas aa gayi.';
+      bgStatus.style.display = 'block';
+      bgBtnText.textContent = 'Background Remove Karo';
+      bgBtnIcon.textContent = '🪄';
+      cropContainer.classList.remove('is-transparent');
+
+      originalImageObj = new Image();
+      originalImageObj.onload = function () {
+        updateCroppedImage();
+      };
+      originalImageObj.src = rawUploadedImageSrc;
     });
 
     sizePreset.addEventListener('change', function () {
@@ -1077,8 +1670,9 @@
         photoGrid.appendChild(img);
       }
       var rows = Math.ceil(count / cols);
-      var neededH = margin_px + rows * (photoH_px + gap_px) - gap_px + margin_px;
-      a4Sheet.style.minHeight = Math.max(A4_H_PX, neededH) + 'px';
+      a4Sheet.style.height = A4_H_PX + 'px';
+      a4Sheet.style.minHeight = A4_H_PX + 'px';
+      a4Sheet.style.maxHeight = A4_H_PX + 'px';
       emptyState.style.display = 'none';
       printBtn.disabled = false;
       scaleA4();
