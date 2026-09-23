@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Passport Photo Maker - A4 Print</title>
+  <meta name="description"
+    content="Passport size photo ko A4 paper pe arrange karo aur print karo. Bilkul free, browser mein hi." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #22223a;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --text: #f0f0f8;
+      --muted: #8888aa;
+      --border: #2e2e4a;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 32px 16px 20px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px 60px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        grid-template-columns: 1fr;
+        padding: 0 12px 40px;
+        gap: 16px;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      header p {
+        font-size: 0.85rem;
+      }
+
+      .panel {
+        padding: 18px;
+        gap: 16px;
+      }
+
+      .preview-panel {
+        padding: 16px;
+      }
+
+      .btn {
+        padding: 14px 20px;
+        font-size: 0.95rem;
+      }
+
+      .upload-zone {
+        padding: 24px 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 24px 12px 16px;
+      }
+
+      header h1 {
+        font-size: 1.3rem;
+      }
+
+      .panel h2,
+      .preview-panel h2 {
+        font-size: 0.85rem;
+      }
+
+      .container {
+        padding: 0 10px 30px;
+        gap: 12px;
+      }
+
+      select,
+      input[type=number] {
+        padding: 12px 14px;
+        font-size: 1rem;
+      }
+
+      .btn {
+        padding: 15px 20px;
+        font-size: 1rem;
+      }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent2);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragging {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.07);
+    }
+
+    .upload-zone input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-zone .icon {
+      font-size: 2.4rem;
+      margin-bottom: 8px;
+    }
+
+    .upload-zone p {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .upload-zone strong {
+      color: var(--text);
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    #thumb-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #thumb-wrap img {
+      width: 90px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--accent);
+    }
+
+    #thumb-wrap button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    #thumb-wrap button:hover {
+      color: #ff6b6b;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    select,
+    input[type=number] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus,
+    input[type=number]:focus {
+      border-color: var(--accent);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--accent2);
+    }
+
+    .preview-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .preview-panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent2);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .a4-wrapper {
+      overflow: hidden;
+      display: flex;
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    #a4-canvas-wrap {
+      position: relative;
+      transform-origin: top left;
+      flex-shrink: 0;
+    }
+
+    #a4-sheet {
+      width: 794px;
+      min-height: 1123px;
+      background: #fff;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #photo-grid {
+      display: flex;
+      flex-wrap: wrap;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #photo-grid img {
+      display: block;
+      object-fit: cover;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 400px;
+      color: #ccc;
+      gap: 12px;
+    }
+
+    .empty-state .big-icon {
+      font-size: 3rem;
+      opacity: 0.4;
+    }
+
+    .empty-state p {
+      font-size: 0.85rem;
+      opacity: 0.5;
+    }
+
+    .scale-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+
+      #a4-sheet,
+      #a4-sheet * {
+        visibility: visible !important;
+      }
+
+      #a4-sheet {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        transform: none !important;
+      }
+
+      #photo-grid img {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      @page {
+        margin: 0;
+        size: A4 portrait;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Passport Photo Maker</h1>
+    <p>Photo upload karo, size chuno, A4 sheet pe arrange karo aur print karo!</p>
+  </header>
+  <div class="container">
+    <div class="panel">
+      <h2>Settings</h2>
+      <div>
+        <label>Photo Upload Karo</label>
+        <div class="upload-zone" id="drop-zone">
+          <input type="file" id="file-input" accept="image/*" />
+          <div class="icon">🖼️</div>
+          <strong>Click karo ya drag & drop karo</strong>
+          <p>JPG, PNG, WEBP supported</p>
+        </div>
+        <div id="thumb-wrap">
+          <img id="thumb-img" src="" alt="Preview" />
+          <button id="change-btn">Photo badlo</button>
+        </div>
+      </div>
+      <div>
+        <label for="size-preset">Photo Size</label>
+        <select id="size-preset">
+          <option value="32x42" selected>Indian Passport – 32x42 mm</option>
+          <option value="35x45">Passport – 35x45 mm</option>
+          <option value="51x51">US Passport – 51x51 mm</option>
+          <option value="25x35">Stamp Size – 25x35 mm</option>
+          <option value="40x60">Visa – 40x60 mm</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div id="custom-size" style="display:none;">
+        <div class="row-2">
+          <div><label>Chaurai (mm)</label><input type="number" id="custom-w" value="35" min="10" max="200" /></div>
+          <div><label>Unchai (mm)</label><input type="number" id="custom-h" value="45" min="10" max="200" /></div>
+        </div>
+      </div>
+      <div>
+        <label for="photo-count">Kitni photos chahiye?</label>
+        <input type="number" id="photo-count" value="6" min="1" max="30" />
+      </div>
+      <div>
+        <label>Photos ke beech gap (mm)</label>
+        <input type="number" id="gap-mm" value="2" min="0" max="20" />
+      </div>
+      <div>
+        <label>Page ka Margin (mm)</label>
+        <input type="number" id="margin-mm" value="3" min="0" max="30" />
+      </div>
+      <button class="btn btn-primary" id="arrange-btn" disabled>🗂️ A4 pe Arrange Karo</button>
+      <button class="btn btn-outline" id="print-btn" disabled>🖨️ Print / Download karo</button>
+    </div>
+    <div class="preview-panel">
+      <h2>👁️ A4 Preview</h2>
+      <div class="a4-wrapper" id="a4-wrapper">
+        <div id="a4-canvas-wrap">
+          <div id="a4-sheet">
+            <div class="empty-state" id="empty-state">
+              <div class="big-icon">📄</div>
+              <p>Photo upload karke "Arrange karo" dabao</p>
+            </div>
+            <div id="photo-grid" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+      <p class="scale-note" id="scale-note"></p>
+    </div>
+  </div>
+  <script>
+    var imgSrc = null;
+    var MM_TO_PX = 3.7795;
+    var A4_W_PX = 794, A4_H_PX = 1123;
+    var fileInput = document.getElementById('file-input');
+    var dropZone = document.getElementById('drop-zone');
+    var thumbWrap = document.getElementById('thumb-wrap');
+    var thumbImg = document.getElementById('thumb-img');
+    var changeBtn = document.getElementById('change-btn');
+    var sizePreset = document.getElementById('size-preset');
+    var customSize = document.getElementById('custom-size');
+    var customW = document.getElementById('custom-w');
+    var customH = document.getElementById('custom-h');
+    var photoCount = document.getElementById('photo-count');
+    var gapMM = document.getElementById('gap-mm');
+    var marginMM = document.getElementById('margin-mm');
+    var arrangeBtn = document.getElementById('arrange-btn');
+    var printBtn = document.getElementById('print-btn');
+    var a4Sheet = document.getElementById('a4-sheet');
+    var photoGrid = document.getElementById('photo-grid');
+    var emptyState = document.getElementById('empty-state');
+    var a4Wrap = document.getElementById('a4-canvas-wrap');
+    var scaleNote = document.getElementById('scale-note');
+
+    function scaleA4() {
+      var wrapper = document.getElementById('a4-wrapper');
+      var wrapperW = wrapper.clientWidth;
+      var scale = Math.min(1, wrapperW / A4_W_PX);
+      a4Wrap.style.transform = 'scale(' + scale + ')';
+      var scaledH = parseFloat(a4Sheet.style.minHeight || A4_H_PX) * scale;
+      a4Wrap.style.height = scaledH + 'px';
+      scaleNote.textContent = scale < 1 ? 'Preview ' + Math.round(scale * 100) + '% zoom pe hai — print pe actual A4 size hogi' : '';
+    }
+    window.addEventListener('resize', scaleA4);
+    scaleA4();
+
+    function loadFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        imgSrc = e.target.result;
+        thumbImg.src = imgSrc;
+        dropZone.style.display = 'none';
+        thumbWrap.style.display = 'flex';
+        arrangeBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    fileInput.addEventListener('change', function (e) { loadFile(e.target.files[0]); });
+    dropZone.addEventListener('dragover', function (e) { e.preventDefault(); dropZone.classList.add('dragging'); });
+    dropZone.addEventListener('dragleave', function () { dropZone.classList.remove('dragging'); });
+    dropZone.addEventListener('drop', function (e) { e.preventDefault(); dropZone.classList.remove('dragging'); loadFile(e.dataTransfer.files[0]); });
+
+    changeBtn.addEventListener('click', function () {
+      imgSrc = null; fileInput.value = '';
+      thumbWrap.style.display = 'none'; dropZone.style.display = '';
+      arrangeBtn.disabled = true; printBtn.disabled = true;
+      emptyState.style.display = ''; photoGrid.style.display = 'none';
+      a4Sheet.style.minHeight = A4_H_PX + 'px'; scaleA4();
+    });
+
+    sizePreset.addEventListener('change', function () {
+      customSize.style.display = sizePreset.value === 'custom' ? '' : 'none';
+    });
+
+    function getSize() {
+      if (sizePreset.value === 'custom') return { w: +customW.value || 35, h: +customH.value || 45 };
+      var parts = sizePreset.value.split('x');
+      return { w: +parts[0], h: +parts[1] };
+    }
+
+    arrangeBtn.addEventListener('click', function () {
+      if (!imgSrc) return;
+      var sz = getSize();
+      var count = Math.max(1, Math.min(30, +photoCount.value || 8));
+      var gap_px = (+gapMM.value || 0) * MM_TO_PX;
+      var margin_px = (+marginMM.value || 0) * MM_TO_PX;
+      var photoW_px = sz.w * MM_TO_PX;
+      var photoH_px = sz.h * MM_TO_PX;
+      var usableW = A4_W_PX - 2 * margin_px;
+      var cols = Math.max(1, Math.floor((usableW + gap_px) / (photoW_px + gap_px)));
+      photoGrid.innerHTML = '';
+      photoGrid.style.display = 'flex';
+      photoGrid.style.flexWrap = 'wrap';
+      photoGrid.style.top = margin_px + 'px';
+      photoGrid.style.left = margin_px + 'px';
+      photoGrid.style.gap = gap_px + 'px';
+      photoGrid.style.width = (cols * (photoW_px + gap_px) - gap_px) + 'px';
+      for (var i = 0; i < count; i++) {
+        var img = document.createElement('img');
+        img.src = imgSrc;
+        img.style.width = photoW_px + 'px';
+        img.style.height = photoH_px + 'px';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+        img.style.flexShrink = '0';
+        photoGrid.appendChild(img);
+      }
+      var rows = Math.ceil(count / cols);
+      var neededH = margin_px + rows * (photoH_px + gap_px) - gap_px + margin_px;
+      a4Sheet.style.minHeight = Math.max(A4_H_PX, neededH) + 'px';
+      emptyState.style.display = 'none';
+      printBtn.disabled = false;
+      scaleA4();
+    });
+
+    printBtn.addEventListener('click', function () { window.print(); });
+  </script>
+</body>
+
+</html>
