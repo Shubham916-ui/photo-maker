@@ -377,6 +377,71 @@
       margin-top: 10px;
     }
 
+    /* ── TOGGLE SWITCH ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toggle-row label {
+      margin-bottom: 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .toggle {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    .border-options {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .border-options.visible { display: flex; }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-row input[type=color] {
+      width: 40px;
+      height: 36px;
+      padding: 2px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .color-row input[type=number] {
+      flex: 1;
+    }
+
     @media print {
       body * {
         visibility: hidden !important;
@@ -469,6 +534,26 @@
         <label>Page ka Margin (mm)</label>
         <input type="number" id="margin-mm" value="3" min="0" max="30" />
       </div>
+      <!-- Border Option -->
+      <div>
+        <div class="toggle-row">
+          <label>Photo pe Border</label>
+          <label class="toggle">
+            <input type="checkbox" id="border-toggle" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="border-options" id="border-options">
+          <div>
+            <label>Border Width (px)</label>
+            <input type="number" id="border-width" value="2" min="1" max="20" />
+          </div>
+          <div class="color-row">
+            <input type="color" id="border-color" value="#000000" />
+            <input type="text" id="border-color-text" value="#000000" placeholder="#000000" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:0.9rem;font-family:inherit;outline:none;" />
+          </div>
+        </div>
+      </div>
       <button class="btn btn-primary" id="arrange-btn" disabled>🗂️ A4 pe Arrange Karo</button>
       <button class="btn btn-outline" id="print-btn" disabled>🖨️ Print / Download karo</button>
     </div>
@@ -554,6 +639,26 @@
       customSize.style.display = sizePreset.value === 'custom' ? '' : 'none';
     });
 
+    var borderToggle = document.getElementById('border-toggle');
+    var borderOptions = document.getElementById('border-options');
+    var borderWidth = document.getElementById('border-width');
+    var borderColor = document.getElementById('border-color');
+    var borderColorText = document.getElementById('border-color-text');
+
+    // Border toggle
+    borderToggle.addEventListener('change', function () {
+      borderOptions.classList.toggle('visible', borderToggle.checked);
+    });
+    // Sync color picker <-> text input
+    borderColor.addEventListener('input', function () {
+      borderColorText.value = borderColor.value;
+    });
+    borderColorText.addEventListener('input', function () {
+      if (/^#[0-9A-Fa-f]{6}$/.test(borderColorText.value)) {
+        borderColor.value = borderColorText.value;
+      }
+    });
+
     function getSize() {
       if (sizePreset.value === 'custom') return { w: +customW.value || 35, h: +customH.value || 45 };
       var parts = sizePreset.value.split('x');
@@ -585,6 +690,15 @@
         img.style.objectFit = 'cover';
         img.style.display = 'block';
         img.style.flexShrink = '0';
+        // Apply border if enabled
+        if (borderToggle.checked) {
+          var bw = Math.max(1, +borderWidth.value || 2);
+          var bc = borderColor.value || '#000000';
+          img.style.border = bw + 'px solid ' + bc;
+          img.style.boxSizing = 'border-box';
+        } else {
+          img.style.border = 'none';
+        }
         photoGrid.appendChild(img);
       }
       var rows = Math.ceil(count / cols);
