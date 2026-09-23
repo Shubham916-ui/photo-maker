@@ -197,17 +197,139 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
+      width: 100%;
     }
 
-    #thumb-wrap img {
-      width: 90px;
-      height: 120px;
-      object-fit: cover;
+    #crop-container {
+      position: relative;
+      overflow: hidden;
       border-radius: 8px;
       border: 2px solid var(--accent);
+      background: #000;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      margin: 0 auto;
     }
 
-    #thumb-wrap button {
+    #crop-container:active {
+      cursor: grabbing;
+    }
+
+    #crop-canvas-preview {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .crop-hint {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.85);
+      background: rgba(0,0,0,0.55);
+      padding: 3px 4px;
+      pointer-events: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .adjust-controls {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .adjust-controls .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .adjust-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .adjust-header span.val {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    .adjust-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .adjust-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(108,99,255,0.5);
+    }
+
+    .adjust-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    .adjust-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .adjust-btn-row button {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .adjust-btn-row button:hover {
+      border-color: var(--accent);
+      background: var(--border);
+    }
+
+    #change-btn {
       background: none;
       border: none;
       color: var(--muted);
@@ -216,7 +338,7 @@
       text-decoration: underline;
     }
 
-    #thumb-wrap button:hover {
+    #change-btn:hover {
       color: #ff6b6b;
     }
 
@@ -501,8 +623,41 @@
           <p>JPG, PNG, WEBP supported</p>
         </div>
         <div id="thumb-wrap">
-          <img id="thumb-img" src="" alt="Preview" />
-          <button id="change-btn">Photo badlo</button>
+          <div id="crop-container" style="width: 120px; height: 158px;">
+            <canvas id="crop-canvas-preview"></canvas>
+            <div class="crop-hint">✋ Drag karke position set karo</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+            <span style="font-size:0.78rem; font-weight:600; color:var(--accent2);">Photo Adjust / Resize</span>
+            <button id="change-btn" type="button">Photo badlo</button>
+          </div>
+          <div class="adjust-controls" id="adjust-controls">
+            <div class="control-group">
+              <div class="adjust-header">
+                <span>🔍 Zoom / Size</span>
+                <span class="val" id="zoom-val">100%</span>
+              </div>
+              <input type="range" class="adjust-slider" id="zoom-slider" min="50" max="250" value="100" />
+            </div>
+            <div class="control-group">
+              <div class="adjust-header">
+                <span>↔️ Left / Right</span>
+                <span class="val" id="pan-x-val">0</span>
+              </div>
+              <input type="range" class="adjust-slider" id="pan-x-slider" min="-100" max="100" value="0" />
+            </div>
+            <div class="control-group">
+              <div class="adjust-header">
+                <span>↕️ Up / Down</span>
+                <span class="val" id="pan-y-val">0</span>
+              </div>
+              <input type="range" class="adjust-slider" id="pan-y-slider" min="-100" max="100" value="0" />
+            </div>
+            <div class="adjust-btn-row">
+              <button id="rotate-btn" type="button">🔄 90° Ghumao</button>
+              <button id="reset-adjust-btn" type="button">↺ Reset</button>
+            </div>
+          </div>
         </div>
       </div>
       <div>
@@ -575,12 +730,28 @@
   </div>
   <script>
     var imgSrc = null;
+    var originalImageObj = new Image();
+    var cropZoom = 100;
+    var cropPanX = 0;
+    var cropPanY = 0;
+    var cropRotation = 0;
+    var adjustedImgSrc = null;
+
     var MM_TO_PX = 3.7795;
     var A4_W_PX = 794, A4_H_PX = 1123;
     var fileInput = document.getElementById('file-input');
     var dropZone = document.getElementById('drop-zone');
     var thumbWrap = document.getElementById('thumb-wrap');
-    var thumbImg = document.getElementById('thumb-img');
+    var cropContainer = document.getElementById('crop-container');
+    var cropCanvasPreview = document.getElementById('crop-canvas-preview');
+    var zoomSlider = document.getElementById('zoom-slider');
+    var zoomVal = document.getElementById('zoom-val');
+    var panXSlider = document.getElementById('pan-x-slider');
+    var panXVal = document.getElementById('pan-x-val');
+    var panYSlider = document.getElementById('pan-y-slider');
+    var panYVal = document.getElementById('pan-y-val');
+    var rotateBtn = document.getElementById('rotate-btn');
+    var resetAdjustBtn = document.getElementById('reset-adjust-btn');
     var changeBtn = document.getElementById('change-btn');
     var sizePreset = document.getElementById('size-preset');
     var customSize = document.getElementById('custom-size');
@@ -596,6 +767,11 @@
     var emptyState = document.getElementById('empty-state');
     var a4Wrap = document.getElementById('a4-canvas-wrap');
     var scaleNote = document.getElementById('scale-note');
+    var borderToggle = document.getElementById('border-toggle');
+    var borderOptions = document.getElementById('border-options');
+    var borderWidth = document.getElementById('border-width');
+    var borderColor = document.getElementById('border-color');
+    var borderColorText = document.getElementById('border-color-text');
 
     function scaleA4() {
       var wrapper = document.getElementById('a4-wrapper');
@@ -609,15 +785,197 @@
     window.addEventListener('resize', scaleA4);
     scaleA4();
 
+    function getSize() {
+      if (sizePreset.value === 'custom') return { w: +customW.value || 35, h: +customH.value || 45 };
+      var parts = sizePreset.value.split('x');
+      return { w: +parts[0], h: +parts[1] };
+    }
+
+    function updateCroppedImage() {
+      if (!originalImageObj.naturalWidth) return;
+      var sz = getSize();
+      var ratio = sz.w / sz.h;
+      var prevH = 150;
+      var prevW = Math.round(prevH * ratio);
+      cropContainer.style.width = prevW + 'px';
+      cropContainer.style.height = prevH + 'px';
+
+      var exportScale = 12;
+      var canvasW = Math.max(300, Math.round(sz.w * exportScale));
+      var canvasH = Math.max(300, Math.round(sz.h * exportScale));
+
+      var exportCanvas = document.createElement('canvas');
+      exportCanvas.width = canvasW;
+      exportCanvas.height = canvasH;
+      var ctx = exportCanvas.getContext('2d');
+
+      var isSwap = (cropRotation % 180 !== 0);
+      var rotatedW = isSwap ? originalImageObj.naturalHeight : originalImageObj.naturalWidth;
+      var rotatedH = isSwap ? originalImageObj.naturalWidth : originalImageObj.naturalHeight;
+
+      var baseScale = Math.max(canvasW / rotatedW, canvasH / rotatedH);
+      var finalScale = baseScale * (cropZoom / 100);
+
+      var panXPx = (cropPanX / 100) * (canvasW / 2);
+      var panYPx = (cropPanY / 100) * (canvasH / 2);
+
+      ctx.save();
+      ctx.translate(canvasW / 2 + panXPx, canvasH / 2 + panYPx);
+      ctx.rotate(cropRotation * Math.PI / 180);
+      ctx.drawImage(
+        originalImageObj,
+        -originalImageObj.naturalWidth * finalScale / 2,
+        -originalImageObj.naturalHeight * finalScale / 2,
+        originalImageObj.naturalWidth * finalScale,
+        originalImageObj.naturalHeight * finalScale
+      );
+      ctx.restore();
+
+      // Draw to preview canvas
+      var dpr = window.devicePixelRatio || 1;
+      cropCanvasPreview.width = prevW * dpr;
+      cropCanvasPreview.height = prevH * dpr;
+      var pCtx = cropCanvasPreview.getContext('2d');
+      pCtx.drawImage(exportCanvas, 0, 0, cropCanvasPreview.width, cropCanvasPreview.height);
+
+      adjustedImgSrc = exportCanvas.toDataURL('image/jpeg', 0.95);
+
+      // Live update if photos already arranged
+      if (photoGrid.style.display !== 'none') {
+        var imgs = photoGrid.getElementsByTagName('img');
+        for (var i = 0; i < imgs.length; i++) {
+          imgs[i].src = adjustedImgSrc;
+        }
+      }
+    }
+
+    // Drag-to-position on preview
+    var isDragging = false;
+    var dragStartX = 0, dragStartY = 0;
+    var startPanX = 0, startPanY = 0;
+
+    function onDragStart(clientX, clientY) {
+      if (!originalImageObj.naturalWidth) return;
+      isDragging = true;
+      dragStartX = clientX;
+      dragStartY = clientY;
+      startPanX = cropPanX;
+      startPanY = cropPanY;
+    }
+
+    function onDragMove(clientX, clientY) {
+      if (!isDragging) return;
+      var dx = clientX - dragStartX;
+      var dy = clientY - dragStartY;
+      var cW = cropContainer.clientWidth || 120;
+      var cH = cropContainer.clientHeight || 150;
+      var newPanX = Math.round(startPanX + (dx / (cW / 2)) * 50);
+      var newPanY = Math.round(startPanY + (dy / (cH / 2)) * 50);
+      cropPanX = Math.max(-100, Math.min(100, newPanX));
+      cropPanY = Math.max(-100, Math.min(100, newPanY));
+      panXSlider.value = cropPanX;
+      panYSlider.value = cropPanY;
+      panXVal.textContent = cropPanX;
+      panYVal.textContent = cropPanY;
+      updateCroppedImage();
+    }
+
+    function onDragEnd() {
+      isDragging = false;
+    }
+
+    cropContainer.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      onDragStart(e.clientX, e.clientY);
+    });
+    window.addEventListener('mousemove', function (e) {
+      if (isDragging) onDragMove(e.clientX, e.clientY);
+    });
+    window.addEventListener('mouseup', onDragEnd);
+
+    cropContainer.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1) {
+        onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+    window.addEventListener('touchmove', function (e) {
+      if (isDragging && e.touches.length === 1) {
+        onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', onDragEnd);
+
+    // Mouse wheel zoom on preview
+    cropContainer.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var delta = e.deltaY < 0 ? 5 : -5;
+      cropZoom = Math.max(50, Math.min(250, cropZoom + delta));
+      zoomSlider.value = cropZoom;
+      zoomVal.textContent = cropZoom + '%';
+      updateCroppedImage();
+    }, { passive: false });
+
+    // Sliders
+    zoomSlider.addEventListener('input', function () {
+      cropZoom = +zoomSlider.value;
+      zoomVal.textContent = cropZoom + '%';
+      updateCroppedImage();
+    });
+
+    panXSlider.addEventListener('input', function () {
+      cropPanX = +panXSlider.value;
+      panXVal.textContent = cropPanX;
+      updateCroppedImage();
+    });
+
+    panYSlider.addEventListener('input', function () {
+      cropPanY = +panYSlider.value;
+      panYVal.textContent = cropPanY;
+      updateCroppedImage();
+    });
+
+    rotateBtn.addEventListener('click', function () {
+      cropRotation = (cropRotation + 90) % 360;
+      updateCroppedImage();
+    });
+
+    resetAdjustBtn.addEventListener('click', function () {
+      cropZoom = 100;
+      cropPanX = 0;
+      cropPanY = 0;
+      cropRotation = 0;
+      zoomSlider.value = 100;
+      zoomVal.textContent = '100%';
+      panXSlider.value = 0;
+      panXVal.textContent = '0';
+      panYSlider.value = 0;
+      panYVal.textContent = '0';
+      updateCroppedImage();
+    });
+
     function loadFile(file) {
       if (!file || !file.type.startsWith('image/')) return;
       var reader = new FileReader();
       reader.onload = function (e) {
         imgSrc = e.target.result;
-        thumbImg.src = imgSrc;
-        dropZone.style.display = 'none';
-        thumbWrap.style.display = 'flex';
-        arrangeBtn.disabled = false;
+        originalImageObj = new Image();
+        originalImageObj.onload = function () {
+          cropZoom = 100;
+          cropPanX = 0;
+          cropPanY = 0;
+          cropRotation = 0;
+          zoomSlider.value = 100;
+          zoomVal.textContent = '100%';
+          panXSlider.value = 0;
+          panXVal.textContent = '0';
+          panYSlider.value = 0;
+          panYVal.textContent = '0';
+          dropZone.style.display = 'none';
+          thumbWrap.style.display = 'flex';
+          arrangeBtn.disabled = false;
+          updateCroppedImage();
+        };
+        originalImageObj.src = imgSrc;
       };
       reader.readAsDataURL(file);
     }
@@ -628,42 +986,60 @@
     dropZone.addEventListener('drop', function (e) { e.preventDefault(); dropZone.classList.remove('dragging'); loadFile(e.dataTransfer.files[0]); });
 
     changeBtn.addEventListener('click', function () {
-      imgSrc = null; fileInput.value = '';
-      thumbWrap.style.display = 'none'; dropZone.style.display = '';
-      arrangeBtn.disabled = true; printBtn.disabled = true;
-      emptyState.style.display = ''; photoGrid.style.display = 'none';
-      a4Sheet.style.minHeight = A4_H_PX + 'px'; scaleA4();
+      imgSrc = null;
+      adjustedImgSrc = null;
+      originalImageObj.src = '';
+      fileInput.value = '';
+      thumbWrap.style.display = 'none';
+      dropZone.style.display = '';
+      arrangeBtn.disabled = true;
+      printBtn.disabled = true;
+      emptyState.style.display = '';
+      photoGrid.style.display = 'none';
+      a4Sheet.style.minHeight = A4_H_PX + 'px';
+      scaleA4();
     });
 
     sizePreset.addEventListener('change', function () {
       customSize.style.display = sizePreset.value === 'custom' ? '' : 'none';
+      updateCroppedImage();
     });
+    customW.addEventListener('input', updateCroppedImage);
+    customH.addEventListener('input', updateCroppedImage);
 
-    var borderToggle = document.getElementById('border-toggle');
-    var borderOptions = document.getElementById('border-options');
-    var borderWidth = document.getElementById('border-width');
-    var borderColor = document.getElementById('border-color');
-    var borderColorText = document.getElementById('border-color-text');
+    // Border controls
+    function updateBorders() {
+      if (photoGrid.style.display !== 'none') {
+        var imgs = photoGrid.getElementsByTagName('img');
+        var isBorder = borderToggle.checked;
+        var bw = Math.max(1, +borderWidth.value || 2);
+        var bc = borderColor.value || '#000000';
+        for (var i = 0; i < imgs.length; i++) {
+          if (isBorder) {
+            imgs[i].style.border = bw + 'px solid ' + bc;
+            imgs[i].style.boxSizing = 'border-box';
+          } else {
+            imgs[i].style.border = 'none';
+          }
+        }
+      }
+    }
 
-    // Border toggle
     borderToggle.addEventListener('change', function () {
       borderOptions.classList.toggle('visible', borderToggle.checked);
+      updateBorders();
     });
-    // Sync color picker <-> text input
+    borderWidth.addEventListener('input', updateBorders);
     borderColor.addEventListener('input', function () {
       borderColorText.value = borderColor.value;
+      updateBorders();
     });
     borderColorText.addEventListener('input', function () {
       if (/^#[0-9A-Fa-f]{6}$/.test(borderColorText.value)) {
         borderColor.value = borderColorText.value;
+        updateBorders();
       }
     });
-
-    function getSize() {
-      if (sizePreset.value === 'custom') return { w: +customW.value || 35, h: +customH.value || 45 };
-      var parts = sizePreset.value.split('x');
-      return { w: +parts[0], h: +parts[1] };
-    }
 
     arrangeBtn.addEventListener('click', function () {
       if (!imgSrc) return;
@@ -684,13 +1060,12 @@
       photoGrid.style.width = (cols * (photoW_px + gap_px) - gap_px) + 'px';
       for (var i = 0; i < count; i++) {
         var img = document.createElement('img');
-        img.src = imgSrc;
+        img.src = adjustedImgSrc || imgSrc;
         img.style.width = photoW_px + 'px';
         img.style.height = photoH_px + 'px';
         img.style.objectFit = 'cover';
         img.style.display = 'block';
         img.style.flexShrink = '0';
-        // Apply border if enabled
         if (borderToggle.checked) {
           var bw = Math.max(1, +borderWidth.value || 2);
           var bc = borderColor.value || '#000000';
